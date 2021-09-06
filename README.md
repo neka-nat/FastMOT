@@ -116,6 +116,12 @@ Note that the first run will be slow due to Numba compilation. To use the FFMPEG
 
 </details>
 
+Use streamlit.
+
+```
+streamlit run webapp.py
+```
+
  ## Track custom classes
 FastMOT can be easily extended to a custom class (e.g. vehicle). You need to train both YOLO and a ReID network on your object class. Check [Darknet](https://github.com/AlexeyAB/darknet) for training YOLO and [fast-reid](https://github.com/JDAI-CV/fast-reid) for training ReID. After training, convert weights to ONNX format. The TensorRT plugin adapted from [tensorrt_demos](https://github.com/jkjung-avt/tensorrt_demos/) is only compatible with Darknet.
 
