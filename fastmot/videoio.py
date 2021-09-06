@@ -9,7 +9,7 @@ import cv2
 
 
 LOGGER = logging.getLogger(__name__)
-WITH_GSTREAMER = True
+WITH_GSTREAMER = False
 
 
 class Protocol(Enum):
@@ -72,7 +72,7 @@ class VideoIO:
         if WITH_GSTREAMER:
             self.source = cv2.VideoCapture(self._gst_cap_pipeline(), cv2.CAP_GSTREAMER)
         else:
-            self.source = cv2.VideoCapture(self.input_uri)
+            self.source = cv2.VideoCapture(0)
 
         self.frame_queue = deque([], maxlen=self.buffer_size)
         self.cond = threading.Condition()

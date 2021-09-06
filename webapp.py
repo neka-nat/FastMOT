@@ -1,0 +1,75 @@
+import streamlit as st
+from pathlib import Path
+from types import SimpleNamespace
+import argparse
+import logging
+import json
+import numpy as np
+import cv2
+
+import fastmot
+import fastmot.models
+from fastmot.utils import ConfigDecoder, Profiler
+
+
+def main():
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    optional = parser._action_groups.pop()
+    optional.add_argument('-c', '--config', metavar="FILE",
+                          default=Path(__file__).parent / 'cfg' / 'mot.json',
+                          help='path to JSON configuration file')
+    optional.add_argument('-l', '--labels', metavar="FILE",
+                          help='path to label names (e.g. coco.names)')
+    parser._action_groups.append(optional)
+    args = parser.parse_args()
+
+    # set up logging
+    logging.basicConfig(format='%(asctime)s [%(levelname)8s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    logger = logging.getLogger(fastmot.__name__)
+    logger.setLevel(logging.INFO)
+
+    # load config file
+    with open(args.config) as cfg_file:
+        config = json.load(cfg_file, cls=ConfigDecoder, object_hook=lambda d: SimpleNamespace(**d))
+
+    # load labels if given
+    if args.labels is not None:
+        with open(args.labels) as label_file:
+            label_map = label_file.read().splitlines()
+            fastmot.models.set_label_map(label_map)
+
+    stream = fastmot.VideoIO(config.resize_to, "0", None, **vars(config.stream_cfg))
+
+    mot = fastmot.MOT(config.resize_to, **vars(config.mot_cfg), draw=True)
+    mot.reset(stream.cap_dt)
+
+
+    image_loc = st.empty()
+    chart = st.line_chart(np.array([[0]]))
+    img0 = None
+    frame_id = 0
+    logger.info('Starting video capture...')
+    stream.start_capture()
+    try:
+        with Profiler('webapp') as prof:
+            while True:
+                frame = stream.read()
+                if frame is None:
+                    break
+                mot.step(frame)
+                tlwhs = []
+                ids = []
+                for track in mot.visible_tracks():
+                    tl = track.tlbr[:2] / config.resize_to * stream.resolution
+                    br = track.tlbr[2:] / config.resize_to * stream.resolution
+                    w, h = br - tl + 1
+                    ids.append(track.trk_id)
+                    tlwhs.append([tl[0], tl[1], w, h])
+                image_loc.image(frame[:, :, ::-1])
+                chart.add_rows(np.array([[len(ids)]]))
+    finally:
+        stream.release()
+
+
+if __name__ == '__main__':
+    main()
