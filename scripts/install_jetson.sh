@@ -31,7 +31,10 @@ sudo apt-get update
 sudo apt-get install -y python3-pip libhdf5-serial-dev hdf5-tools libcanberra-gtk-module
 sudo -H pip3 install numpy
 sudo ln -s /usr/include/locale.h /usr/include/xlocale.h
-sudo -H pip3 install --no-cache-dir --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v$JP_VERSION tensorflow==$TF_VERSION+nv$NV_VERSION
+# sudo -H pip3 install --no-cache-dir --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v$JP_VERSION tensorflow==$TF_VERSION+nv$NV_VERSION
+sudo -H pip3 install testresources setuptools==49.6.0
+sudo -H pip3 install --no-cache-dir  --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v45 tensorflow==1.15.4+nv20.12
+
 
 # SciPy
 sudo apt-get install -y libatlas-base-dev gfortran
