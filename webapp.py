@@ -45,9 +45,8 @@ def main():
 
 
     image_loc = st.empty()
-    chart = st.line_chart(np.array([[0]]))
-    img0 = None
-    frame_id = 0
+    n_video = 8
+    chart = st.line_chart(np.zeros((1, n_video)))
     logger.info('Starting video capture...')
     stream.start_capture()
     try:
@@ -66,7 +65,13 @@ def main():
                     ids.append(track.trk_id)
                     tlwhs.append([tl[0], tl[1], w, h])
                 image_loc.image(frame[:, :, ::-1])
-                chart.add_rows(np.array([[len(ids)]]))
+                counts = np.zeros((3, 3))
+                w_u = stream.resolution[0] // 3
+                h_u = stream.resolution[1] // 3
+                for tlx, tly, w, h in tlwhs:
+                    center = (tlx + w / 2, tly + h / 2)
+                    counts[int(center[1] / h_u), int(center[0] / w_u)] += 1
+                chart.add_rows(counts.reshape(1, 9)[:, :8])
     finally:
         stream.release()
 
