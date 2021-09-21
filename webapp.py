@@ -64,7 +64,7 @@ def main():
                     w, h = br - tl + 1
                     ids.append(track.trk_id)
                     tlwhs.append([tl[0], tl[1], w, h])
-                image_loc.image(frame[:, :, ::-1])
+                image_loc.image(frame[:, :, ::-1], output_format="PNG")
                 counts = np.zeros((3, 3))
                 w_u = stream.resolution[0] // 3
                 h_u = stream.resolution[1] // 3
