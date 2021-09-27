@@ -63,6 +63,7 @@ def main():
     df = pd.DataFrame(columns=columns)
     logger.info('Starting video capture...')
     stream.start_capture()
+    frame_cnt = 0
     try:
         with Profiler('webapp') as prof:
             while True:
@@ -87,13 +88,16 @@ def main():
                     counts[int(center[1] / h_u), int(center[0] / w_u)] += 1
                 counts = counts.reshape(1, 9)[:, :8]
                 chart.add_rows(counts)
-                if len(tlwhs) > 0:
-                    df = df.append(pd.Series([datetime.datetime.now()] + counts[0].astype(int).tolist(), index=columns),
-                                   ignore_index=True)
-                    table.dataframe(df)
-                    download_link.markdown(get_table_download_link(df), unsafe_allow_html=True)
-                if len(df) > max_length:
-                    df = df.iloc[(max_length // 2):, :]
+                if frame_cnt % 10 == 0:
+                    if len(tlwhs) > 0:
+                        df = df.append(pd.Series([datetime.datetime.now()] + counts[0].astype(int).tolist(),
+                                                 index=columns),
+                                       ignore_index=True)
+                        table.dataframe(df)
+                        download_link.markdown(get_table_download_link(df), unsafe_allow_html=True)
+                    if len(df) > max_length:
+                        df = df.iloc[(max_length // 2):, :]
+                frame_cnt += 1
     finally:
         stream.release()
 
