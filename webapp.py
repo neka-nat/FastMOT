@@ -2,14 +2,23 @@ import streamlit as st
 from pathlib import Path
 from types import SimpleNamespace
 import argparse
+import base64
 import logging
 import json
+import datetime
 import numpy as np
+import pandas as pd
 import cv2
 
 import fastmot
 import fastmot.models
 from fastmot.utils import ConfigDecoder, Profiler
+
+
+def get_table_download_link(df):
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()
+    return f'<a href="data:file/csv;base64,{b64}">Download csv file</a>'
 
 
 def main():
@@ -44,9 +53,14 @@ def main():
     mot.reset(stream.cap_dt)
 
 
+    max_length = 100000
     image_loc = st.empty()
+    table = st.empty()
+    download_link = st.empty()
     n_video = 8
     chart = st.line_chart(np.zeros((1, n_video)))
+    columns = ["time"] + [f"count_video_{i}" for i in range(n_video)]
+    df = pd.DataFrame(columns=columns)
     logger.info('Starting video capture...')
     stream.start_capture()
     try:
@@ -71,7 +85,15 @@ def main():
                 for tlx, tly, w, h in tlwhs:
                     center = (tlx + w / 2, tly + h / 2)
                     counts[int(center[1] / h_u), int(center[0] / w_u)] += 1
-                chart.add_rows(counts.reshape(1, 9)[:, :8])
+                counts = counts.reshape(1, 9)[:, :8]
+                chart.add_rows(counts)
+                if len(tlwhs) > 0:
+                    df = df.append(pd.Series([datetime.datetime.now()] + counts[0].astype(int).tolist(), index=columns),
+                                   ignore_index=True)
+                    table.dataframe(df)
+                    download_link.markdown(get_table_download_link(df), unsafe_allow_html=True)
+                if len(df) > max_length:
+                    df = df.iloc[(max_length // 2):, :]
     finally:
         stream.release()
 
