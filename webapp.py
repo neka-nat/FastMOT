@@ -64,6 +64,7 @@ def main():
     logger.info('Starting video capture...')
     stream.start_capture()
     frame_cnt = 0
+    counts_prev = None
     try:
         with Profiler('webapp') as prof:
             while True:
@@ -89,7 +90,7 @@ def main():
                 counts = counts.reshape(1, 9)[:, :8]
                 chart.add_rows(counts)
                 if frame_cnt % 10 == 0:
-                    if len(tlwhs) > 0:
+                    if counts_prev is None or abs(counts - counts_prev).sum() > 0:
                         df = df.append(pd.Series([datetime.datetime.now()] + counts[0].astype(int).tolist(),
                                                  index=columns),
                                        ignore_index=True)
@@ -98,6 +99,7 @@ def main():
                     if len(df) > max_length:
                         df = df.iloc[(max_length // 2):, :]
                 frame_cnt += 1
+                counts_prev = counts
     finally:
         stream.release()
 
