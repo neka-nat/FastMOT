@@ -119,6 +119,7 @@ Note that the first run will be slow due to Numba compilation. To use the FFMPEG
 Use streamlit.
 
 ```
+# export MPLBACKEND="agg"
 streamlit run webapp.py
 ```
 
