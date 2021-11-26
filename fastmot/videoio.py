@@ -99,7 +99,7 @@ class VideoIO:
                 self.writer = cv2.VideoWriter(self._gst_write_pipeline(), cv2.CAP_GSTREAMER, 0,
                                               output_fps, self.size, True)
             else:
-                fourcc = cv2.VideoWriter_fourcc(*'avc1')
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
                 self.writer = cv2.VideoWriter(self.output_uri, fourcc, output_fps, self.size, True)
 
     @property
